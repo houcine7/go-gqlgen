@@ -29,6 +29,6 @@ type RefreshToken struct {
 }
 
 type User struct {
-	ID       string  `json:"id"`
-	Username *string `json:"username,omitempty"`
+	ID       string `json:"id"`
+	Username string `json:"username"`
 }

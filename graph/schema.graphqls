@@ -10,7 +10,7 @@ type Link {
 
 type User {
   id: ID!
-  username: String
+  username: String!
 }
 
 type Query {

@@ -33,12 +33,18 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input *model.Refres
 
 // Links is the resolver for the links field.
 func (r *queryResolver) Links(ctx context.Context) ([]*model.Link, error) {
-	// var links *[]model.Link
-	// dummyLinks := model.Link{
-	// 	Title: "Our dummy link",
-	// 	User:  &model.User{},
-	// }
-	panic(fmt.Errorf("Implement this siir"))
+	var links []*model.Link
+
+	dummyLink := model.Link{
+		Title:   "our dummy link",
+		Address: "https://address.org",
+		User: &model.User{
+			Username: "admin",
+		},
+	}
+
+	links = append(links, &dummyLink)
+	return links, nil
 }
 
 // Mutation returns MutationResolver implementation.
