@@ -9,10 +9,12 @@ import (
 	"fmt"
 
 	"github.com/houcine7/graphql-server/graph/model"
+	"github.com/houcine7/graphql-server/internal/models/links"
 )
 
 // CreateLink is the resolver for the createLink field.
 func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) (*model.Link, error) {
+	
 	link := model.Link{
 		Title: input.Title,
 		Address: input.Address,
@@ -20,7 +22,14 @@ func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) 
 			Username: "dummy_user",
 		},
 	}
-	DUMMY_LINKS =append(DUMMY_LINKS,&link);
+
+	// DB things 
+	var linkToSave links.Link
+	linkToSave.Title= input.Title
+	linkToSave.Address = input.Address
+	var generatedId int64 =  linkToSave.Save()
+	fmt.Println(generatedId)
+	DUMMY_LINKS =append(DUMMY_LINKS,&link)
 	return &link,nil
 }
 
