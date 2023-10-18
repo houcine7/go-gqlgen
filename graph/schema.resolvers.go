@@ -13,7 +13,15 @@ import (
 
 // CreateLink is the resolver for the createLink field.
 func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) (*model.Link, error) {
-	panic(fmt.Errorf("not implemented: CreateLink - createLink"))
+	link := model.Link{
+		Title: input.Title,
+		Address: input.Address,
+		User: &model.User{
+			Username: "dummy_user",
+		},
+	}
+	DUMMY_LINKS =append(DUMMY_LINKS,&link);
+	return &link,nil
 }
 
 // CreateUser is the resolver for the createUser field.
@@ -32,19 +40,14 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input *model.Refres
 }
 
 // Links is the resolver for the links field.
-func (r *queryResolver) Links(ctx context.Context) ([]*model.Link, error) {
-	var links []*model.Link
+func (r *queryResolver) Links(ctx context.Context, last *int) ([]*model.Link, error) {
+	if last ==nil {
+		return DUMMY_LINKS, nil
+	}else {
 
-	dummyLink := model.Link{
-		Title:   "our dummy link",
-		Address: "https://address.org",
-		User: &model.User{
-			Username: "admin",
-		},
+		return DUMMY_LINKS[len(DUMMY_LINKS)-*last:],nil
 	}
 
-	links = append(links, &dummyLink)
-	return links, nil
 }
 
 // Mutation returns MutationResolver implementation.
@@ -55,3 +58,40 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+var DUMMY_LINKS []*model.Link = []*model.Link{
+	{
+		Title:   "some title",
+		Address: "http://hassan123.io",
+		User: &model.User{
+			Username: "dollars",
+		},
+	},
+	{
+		Title:   "second",
+		Address: "http://rabie.app.io",
+		User: &model.User{
+			Username: "Elixir",
+		},
+	},
+	{
+		Title:   "some title",
+		Address: "http://houcine1.test.io",
+		User: &model.User{
+			Username: "sherlock",
+		},
+	},
+	{
+		Title:   "our dummy link",
+		Address: "https://houcine7.test.io",
+		User: &model.User{
+			Username: "houcine7",
+		},
+	},
+}

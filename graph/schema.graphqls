@@ -14,7 +14,7 @@ type User {
 }
 
 type Query {
-  links: [Link!]!
+  links(last: Int): [Link!]!
 }
 
 input NewLink {
