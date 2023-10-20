@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/houcine7/graphql-server/graph/model"
 	database "github.com/houcine7/graphql-server/internal/db"
 	"github.com/houcine7/graphql-server/internal/models/users"
 )
@@ -22,12 +21,12 @@ func (l Link) Save() int64{
 	if err!=nil{
 		log.Fatal(err)
 	}
-
+	defer qr.Close()
 	res,err := qr.Exec(l.Title,l.Address)
-
 	if err!=nil{
 		log.Fatal(err)
 	}
+	
 	id,err :=res.LastInsertId()
 
 	if err!=nil{
@@ -37,7 +36,7 @@ func (l Link) Save() int64{
 	return id
 }
 
-func Links() ([]*model.Link,error ){
+func Links() ([]Link,error ){
 
 	myQuery,err := database.Db.Prepare("SELECT * FROM Link");
 	if err !=nil {
@@ -52,7 +51,7 @@ func Links() ([]*model.Link,error ){
 	}
 	
 	defer rows.Close() // second deferred to execute 
-	var links []*model.Link 
+	var links []Link 
 
 	for rows.Next() {
 		var title,address string
@@ -63,12 +62,12 @@ func Links() ([]*model.Link,error ){
 			log.Fatal(err)
 		}
 
-		link := model.Link{
+		link := Link{
 			Title: title,
 			Address: address,
 			ID: string(id),
 		}
-		links =append(links,&link)
+		links =append(links,link)
 	}
 	
 	return links,nil
