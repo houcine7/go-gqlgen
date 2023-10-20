@@ -65,7 +65,6 @@ func (r *queryResolver) Links(ctx context.Context, last *int) ([]*model.Link, er
 		})
 	}
 	return responseLinks,nil
-
 }
 
 // Mutation returns MutationResolver implementation.
