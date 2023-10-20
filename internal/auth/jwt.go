@@ -34,9 +34,11 @@ func GenerateToken(username string) (string,error) {
 // parse the jwt
 func ParseToken(tokenStr string) (string,error) {
 
+	// anonymous func
 	keyFunc := func(token *jwt.Token) (interface{},error){
 		return SecretKey,nil
 	}
+
 	token, err := jwt.Parse(tokenStr,keyFunc)
 
 	if claims,ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
