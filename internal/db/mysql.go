@@ -12,14 +12,10 @@ import (
 
 var Db *sql.DB
 
-func InitDb() {
-
-	for _, env := range os.Environ() {
-		fmt.Println(env)
-	}	
+func InitDb() {	
 
 	connectionStr := fmt.Sprintf("root:%s@tcp(localhost)/go_graphql",os.Getenv("MYSQL_DUMMY_PASSWD"))
-	log.Print(os.Getenv("MYSQL_DUMMY_PASSWD"))
+	log.Println(connectionStr)
 	db, err := sql.Open("mysql", connectionStr)
 
 	if err !=nil {
@@ -29,7 +25,6 @@ func InitDb() {
 	if err=db.Ping() ; err !=nil{
 		log.Panic(err)
 	}
-	//log.Fatal(db.Stats())
 	Db = db;
 }
 

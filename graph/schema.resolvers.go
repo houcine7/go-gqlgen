@@ -7,6 +7,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/houcine7/graphql-server/graph/model"
 	"github.com/houcine7/graphql-server/internal/models/links"
@@ -50,12 +51,11 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input *model.Refres
 
 // Links is the resolver for the links field.
 func (r *queryResolver) Links(ctx context.Context, last *int) ([]*model.Link, error) {
-	if last ==nil {
-		return DUMMY_LINKS, nil
-	}else {
-
-		return DUMMY_LINKS[len(DUMMY_LINKS)-*last:],nil
+	links, err := links.Links()
+	if err!=nil{
+		log.Fatal(err)
 	}
+	return links,nil
 
 }
 
