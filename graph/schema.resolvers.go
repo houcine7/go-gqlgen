@@ -81,7 +81,21 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 
 // RefreshToken is the resolver for the refreshToken field.
 func (r *mutationResolver) RefreshToken(ctx context.Context, input *model.RefreshToken) (string, error) {
-	panic(fmt.Errorf("not implemented: RefreshToken - refreshToken"))
+	username,err := jwt.ParseToken(input.Token)
+	if err!=nil{
+		log.Print("Error while parsing",err)
+		return "",fmt.Errorf("access denied")
+	}
+
+	token,err := jwt.GenerateToken(username)
+	if err!=nil{
+		log.Print("Error generating token",err)
+		return "",err
+	}
+	return token,nil
+
+
+
 }
 
 // Links is the resolver for the links field.
