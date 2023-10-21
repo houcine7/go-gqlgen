@@ -57,7 +57,7 @@ func GetUserId(username string) (int,error) {
 	}
 	defer stmt.Close()
 
-	row := stmt.QueryRow()
+	row := stmt.QueryRow(username)
 	var id int
 	err = row.Scan(&id)
 	if err !=nil{

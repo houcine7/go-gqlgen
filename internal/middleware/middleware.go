@@ -44,7 +44,7 @@ func AuthMiddleware() func(http.Handler) http.Handler{
 			user.ID = strconv.Itoa(id)
 			ctx := context.WithValue(req.Context(), userCtxKey,&user) // add user to context 
 			
-			req = req.WithContext(ctx)
+			req = req.WithContext(ctx) // set context  
 			next.ServeHTTP(resWriter,req)
 		})
 	}
