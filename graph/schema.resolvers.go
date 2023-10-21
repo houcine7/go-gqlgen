@@ -10,38 +10,73 @@ import (
 	"log"
 
 	"github.com/houcine7/graphql-server/graph/model"
+	jwt "github.com/houcine7/graphql-server/internal/auth"
+	auth "github.com/houcine7/graphql-server/internal/middleware"
 	"github.com/houcine7/graphql-server/internal/models/links"
+	"github.com/houcine7/graphql-server/internal/models/users"
 )
 
 // CreateLink is the resolver for the createLink field.
-func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) (*model.Link, error) {
-	
+func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) (*model.Link, error) {	
+	// authenticated users can create links
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return &model.Link{}, fmt.Errorf("access denied")
+	}
 	link := model.Link{
 		Title: input.Title,
 		Address: input.Address,
 		User: &model.User{
-			Username: "dummy_user",
+			Username: user.Username,
 		},
 	}
-
 	// DB things 
 	var linkToSave links.Link
 	linkToSave.Title= input.Title
 	linkToSave.Address = input.Address
+	linkToSave.User = user
 	var generatedId int64 =  linkToSave.Save()
 	fmt.Println(generatedId)
-	DUMMY_LINKS =append(DUMMY_LINKS,&link)
 	return &link,nil
 }
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
-	panic(fmt.Errorf("not implemented: CreateUser - createUser"))
+	var user users.User
+	user.Username = input.Username
+	user.Password = input.Password
+	user.Create()
+	 
+	token,err := jwt.GenerateToken(user.Username)
+
+	if err!=nil{
+		return "",err
+	}
+	return token,nil
 }
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
-	panic(fmt.Errorf("not implemented: Login - login"))
+	
+	var user = users.User{
+		Username: input.Username,
+		Password:input.Password,
+	}
+
+	ok,err :=user.Authenticate()
+	if !ok{
+		return "",err
+	}
+
+	token,err:= jwt.GenerateToken(user.Username)
+
+	if err!=nil {
+		fmt.Print("Error generating the token",err)
+		return "",fmt.Errorf("something went wrong")
+	}
+
+	return token,nil
+
 }
 
 // RefreshToken is the resolver for the refreshToken field.
@@ -51,6 +86,7 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input *model.Refres
 
 // Links is the resolver for the links field.
 func (r *queryResolver) Links(ctx context.Context, last *int) ([]*model.Link, error) {
+	
 	fetchedLinks, err := links.Links()
 	if err!=nil{
 		log.Fatal(err)
@@ -62,6 +98,10 @@ func (r *queryResolver) Links(ctx context.Context, last *int) ([]*model.Link, er
 			Address: link.Address,
 			ID: link.ID,
 			Title: link.Title,
+			User: &model.User{
+				ID: link.User.ID,
+				Username: link.User.Username,
+			},
 		})
 	}
 	return responseLinks,nil
@@ -75,40 +115,3 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-var DUMMY_LINKS []*model.Link = []*model.Link{
-	{
-		Title:   "some title",
-		Address: "http://hassan123.io",
-		User: &model.User{
-			Username: "dollars",
-		},
-	},
-	{
-		Title:   "second",
-		Address: "http://rabie.app.io",
-		User: &model.User{
-			Username: "Elixir",
-		},
-	},
-	{
-		Title:   "some title",
-		Address: "http://houcine1.test.io",
-		User: &model.User{
-			Username: "sherlock",
-		},
-	},
-	{
-		Title:   "our dummy link",
-		Address: "https://houcine7.test.io",
-		User: &model.User{
-			Username: "houcine7",
-		},
-	},
-}

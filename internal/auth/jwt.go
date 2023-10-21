@@ -33,14 +33,15 @@ func GenerateToken(username string) (string,error) {
 
 // parse the jwt
 func ParseToken(tokenStr string) (string,error) {
-
 	// anonymous func
 	keyFunc := func(token *jwt.Token) (interface{},error){
 		return SecretKey,nil
 	}
-
 	token, err := jwt.Parse(tokenStr,keyFunc)
-
+	if err != nil{
+		log.Fatal("Error in parsing token",err)
+		return "",err
+	}
 	if claims,ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		username :=claims["username"].(string)
 		return username,nil

@@ -1,8 +1,8 @@
 package links
 
 import (
-	"database/sql"
 	"log"
+	"strconv"
 
 	database "github.com/houcine7/graphql-server/internal/db"
 	"github.com/houcine7/graphql-server/internal/models/users"
@@ -16,13 +16,13 @@ type Link struct {
 }
 
 func (l Link) Save() int64{
-	qr , err := database.Db.Prepare("INSERT INTO Link(Title,address) values(?,?)")
+	qr , err := database.Db.Prepare("INSERT INTO Link(Title,Address,UserID) values(?,?,?)")
 
 	if err!=nil{
 		log.Fatal(err)
 	}
 	defer qr.Close()
-	res,err := qr.Exec(l.Title,l.Address)
+	res,err := qr.Exec(l.Title,l.Address,l.User.ID)
 	if err!=nil{
 		log.Fatal(err)
 	}
@@ -38,7 +38,7 @@ func (l Link) Save() int64{
 
 func Links() ([]Link,error ){
 
-	myQuery,err := database.Db.Prepare("SELECT * FROM Link");
+	myQuery,err := database.Db.Prepare("SELECT l.ID,l.Title,l.Address,U.ID,U.Username FROM Link as l INNER JOIN User as U on l.UserID = U.ID");
 	if err !=nil {
 		log.Fatal(err)
 	}
@@ -54,22 +54,20 @@ func Links() ([]Link,error ){
 	var links []Link 
 
 	for rows.Next() {
-		var title,address string
-		var id int64
-		var userId sql.NullInt64
+		var link Link
+		var username string
+		var id int
 		
-		if err:= rows.Scan(&id,&title,&address,&userId); err!=nil{
+		if err:= rows.Scan(&link.ID,&link.Title,&link.Address,&id,&username); err!=nil{
 			log.Fatal(err)
 		}
 
-		link := Link{
-			Title: title,
-			Address: address,
-			ID: string(id),
+		link.User = &users.User{
+			ID: strconv.Itoa(id),
+			Username: username,
 		}
 		links =append(links,link)
 	}
 	
 	return links,nil
-
 }

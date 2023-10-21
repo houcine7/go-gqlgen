@@ -2,6 +2,7 @@ package users
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	database "github.com/houcine7/graphql-server/internal/db"
@@ -15,7 +16,7 @@ type User struct {
 }
 
 func (user *User) Create() int64{
-	stm, err := database.Db.Prepare("INSERT INTO Users(Username, Password) VALUES(?,?)")
+	stm, err := database.Db.Prepare("INSERT INTO User(Username, Password) VALUES(?,?)")
 	if err!=nil{
 		log.Fatal(err)
 	}
@@ -39,18 +40,39 @@ func (user *User) Create() int64{
 	return id
 }
 
-func HashPassword(password string) (string,error){
-	bytes,err :=bcrypt.GenerateFromPassword([]byte(password),14)
-	return string(bytes), err
+func (user *User) Authenticate() (bool, error){
+	qr,err := database.Db.Prepare("SELECT Password FROM User WHERE Username=?")
+	
+	if err!=nil{
+		fmt.Print("Error occurred",err)
+		return false, fmt.Errorf("unexpected error ! :)")
+	}
+	defer qr.Close()
+
+	row := qr.QueryRow(user.Username)
+	var dbPasswd string
+	err = row.Scan(&dbPasswd)
+
+	if err!=nil{
+		fmt.Print("Can't find provided username",err)
+		if err ==sql.ErrNoRows{
+			return false,fmt.Errorf("username not found")
+		}else{
+			return false, fmt.Errorf("unexpected error ! :)")
+		}
+	}
+
+	if CheckPasswordHash(user.Password,dbPasswd) {
+		return true, nil
+	}else{
+		return false, fmt.Errorf("wrong password try again")
+	}
+
 }
 
-func CheckPasswordHash(password, hash string) bool{
-	err := bcrypt.CompareHashAndPassword([]byte(hash),[]byte(password))
-	return err == nil
-}
 
 func GetUserId(username string) (int,error) {
-	stmt, err := database.Db.Prepare("SELECT ID FROM Users WHERE Username=?")
+	stmt, err := database.Db.Prepare("SELECT ID FROM User WHERE Username=?")
 
 	if err !=nil{
 		log.Fatal(err)
@@ -68,5 +90,18 @@ func GetUserId(username string) (int,error) {
 	}
 
 	return id,nil
-
 }	
+
+
+
+//utils : =>
+
+func HashPassword(password string) (string,error){
+	bytes,err :=bcrypt.GenerateFromPassword([]byte(password),14)
+	return string(bytes), err
+}
+
+func CheckPasswordHash(password, hash string) bool{
+	err := bcrypt.CompareHashAndPassword([]byte(hash),[]byte(password))
+	return err == nil
+}
